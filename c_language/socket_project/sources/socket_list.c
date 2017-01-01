@@ -2,18 +2,21 @@
 
 #define MAX(a,b) (a)>(b)?(a):(b)
 #define QUEUE_SIZE 20
+
+/*Create Socket List*/
+
 PSOCKET_LIST CreateSocketList(void)
 {
     PSOCKET_LIST pSocketList = NULL;
 
     pSocketList = (PSOCKET_LIST)malloc(sizeof(SOCKET_LIST));
     if(pSocketList==NULL)
-	return NULL;
+	    return NULL;
 
     pSocketList->pSocketClientList = (int *)malloc(sizeof(int)*QUEUE_SIZE);
     if(pSocketList->pSocketClientList==NULL){
-	free(pSocketList);
-	return NULL;
+	    free(pSocketList);
+	    return NULL;
     }
     memset(pSocketList->pSocketClientList, 0, sizeof(int)*QUEUE_SIZE);
     pSocketList->listLen = QUEUE_SIZE;
@@ -26,9 +29,9 @@ PSOCKET_LIST CreateSocketList(void)
 void FreeSocketList(PSOCKET_LIST pSocketList)
 {
     if(pSocketList){
-	if(pSocketList->pSocketClientList)
-	    free(pSocketList->pSocketClientList);
-	free(pSocketList);
+	    if(pSocketList->pSocketClientList)
+	        free(pSocketList->pSocketClientList);
+	    free(pSocketList);
     }
 }
 
@@ -40,7 +43,7 @@ int GetClientSocketByIndex(PSOCKET_LIST pSocketList, int index)
 int PushServerSocketInList(PSOCKET_LIST pSocketList, int socketfd)
 {
     if(pSocketList==NULL)
-	return 0;
+	    return 0;
 
     pSocketList->socketServer = socketfd;
     pSocketList->maxfd = MAX(pSocketList->maxfd , socketfd);
@@ -73,19 +76,19 @@ int PopClientSocketFromList(PSOCKET_LIST pSocketList, int socketfd)
     int index=0;
 
     if(pSocketList==NULL || pSocketList->pSocketClientList==NULL)
-	return 0;
+	    return 0;
 
     for(index=0; index<pSocketList->listLen;index++){
-	if(pSocketList->pSocketClientList[index]==socketfd){
-	    pSocketList->pSocketClientList[index]=0;
+	    if(pSocketList->pSocketClientList[index]==socketfd){
+	        pSocketList->pSocketClientList[index]=0;
 
-           if(pSocketList->maxfd == socketfd){
+            if(pSocketList->maxfd == socketfd){
                pSocketList->maxfd = pSocketList->socketServer;
                for(index=0; index<pSocketList->listLen;index++)
                    pSocketList->maxfd = MAX(pSocketList->maxfd , socketfd);
-           }
-	    return 1;
-	}
+            }
+	        return 1;
+	    }
     }
     return 0;
 }
