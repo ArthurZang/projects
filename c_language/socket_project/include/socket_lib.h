@@ -15,8 +15,10 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <sys/un.h>
+#include <sys/eventfd.h>
 
 #include "socket_list.h"
+#include "socket_queue.h"
 #include "thread_pool.h"
 
 

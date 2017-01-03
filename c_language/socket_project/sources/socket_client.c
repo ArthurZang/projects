@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
     strcpy(pBuf, "hello world");    
     ret = write(socketClient, pBuf, strlen(pBuf));
     printf("client send %d data\n",ret);
+    read(socketClient,pBuf, sizeof(pBuf));
+    printf("receive from server %s\n", pBuf);
     close(socketClient);
     
 }
