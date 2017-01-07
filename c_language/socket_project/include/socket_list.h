@@ -2,29 +2,22 @@
 #define __SOCKET_LIST_H__
 
 typedef struct {
-    int *pSocketClientList;
+    int *pList;
     int listLen;
-    int maxfd;
-    int socketServer;
 }SOCKET_LIST, *PSOCKET_LIST;
 
-PSOCKET_LIST CreateSocketList(void);
+PSOCKET_LIST CreateSocketList(int listLen);
 
 void FreeSocketList(PSOCKET_LIST pSocketList);
 
-#define GetSocketListLen(pSocketList) (pSocketList)->listLen
+int AddSocketInList(PSOCKET_LIST pSocketList, int socketfd);
 
-#define GetServerSocketFromList(pSocketList) (pSocketList)->socketServer
+int DelSocketFromList(PSOCKET_LIST pSocketList, int socketfd);
 
-#define GetMaxSocketFromList(pSocketList)  (pSocketList)->maxfd
-
-int GetClientSocketByIndex(PSOCKET_LIST pSocketList, int index);
-
-int PushServerSocketInList(PSOCKET_LIST pSocketList, int socketfd);
-
-int PushClientSocketInList(PSOCKET_LIST pSocketList, int socketfd);
-
-int PopClientSocketFromList(PSOCKET_LIST pSocketList, int socketfd);
+#define EachSocketInList(pSocketList, socketfd, index) \
+    for(index=0, socketfd=pSocketList->pList[0];       \
+        index<pSocketList->listLen;                    \
+        index++, socketfd=pSocketList->pList[index])
 
 #endif
 

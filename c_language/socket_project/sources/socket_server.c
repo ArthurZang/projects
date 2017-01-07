@@ -1,5 +1,7 @@
 #include "socket_lib.h"
 
+#define MAX(a,b) (a)>(b)?(a):(b)
+
 static PSOCKET_LIST pSocketList=NULL;
 static PSOCKET_QUEUE pSocketQueue=NULL;
 static int pipefd[2];
@@ -11,7 +13,6 @@ static void pthread_task(void *param)
     int ret;
     int socketClient;
     char pBuf[1024];
-    uint64_t temp;
 
     while(1){
         PopSocketFromQueue(pSocketQueue, &socketClient);
@@ -25,8 +26,7 @@ static void pthread_task(void *param)
         
             printf("server receive %d:%s\n",socketClient, pBuf);
             write(socketClient,RESPONSE, strlen(RESPONSE));
-            PushClientSocketInList(pSocketList, socketClient);
-            ret = write(pipefd[1], &temp, sizeof(temp));
+            ret = write(pipefd[1], &socketClient, sizeof(socketClient));
             printf("event write %d\n",ret);
         }
     }
@@ -53,14 +53,9 @@ int main(int argc, char *argv[])
     flags = fcntl(socketServer, F_GETFL, 0);
     fcntl(socketServer, flags | O_NONBLOCK);
 
-    /*s_eventfd = eventfd(0,EFD_NONBLOCK);
-    if(s_eventfd==-1){
-        printf("event fd error\n");
-        return 0;
-    }*/
     pipe(pipefd);
 
-    pSocketList = CreateSocketList();
+    pSocketList = CreateSocketList(20);
     if(!pSocketList){
         close(socketServer);
         printf("create socket list error \n");
@@ -78,8 +73,6 @@ int main(int argc, char *argv[])
 
     pthread_create(&pthreadid, NULL, pthread_task, (void *)pSocketQueue);
     
-    PushServerSocketInList(pSocketList, socketServer);
-    
     while(1){
         int index, ret, maxfd;
         fd_set rfds;
@@ -89,35 +82,26 @@ int main(int argc, char *argv[])
         
         FD_SET(socketServer, &rfds);
         FD_SET(pipefd[0], &rfds);
+        maxfd = MAX(socketServer, pipefd[0]);
         
-        for(index=0; index<GetSocketListLen(pSocketList); index++){
-            socketClient = GetClientSocketByIndex(pSocketList, index);
-            //printf("index %d:%d", index, socketClient);
+        EachSocketInList(pSocketList, socketClient, index){
+//        for(index=0; index<GetSocketListLen(pSocketList); index++){
+//            socketClient = GetClientSocketByIndex(pSocketList, index);
             if(socketClient>0){
                 FD_SET(socketClient, &rfds);
+                maxfd = MAX(maxfd, socketClient);
             }
         }
         
-        maxfd = GetMaxSocketFromList(pSocketList);
-
         ret = select(maxfd+1, &rfds, NULL, NULL, NULL);
         if(ret<=0)
             continue;
-        for(index=0; index<GetSocketListLen(pSocketList); index++){
-            socketClient = GetClientSocketByIndex(pSocketList, index);
+        //for(index=0; index<GetSocketListLen(pSocketList); index++){
+        EachSocketInList(pSocketList, socketClient, index){
+        //    socketClient = GetClientSocketByIndex(pSocketList, index);
             if(socketClient!=0 && FD_ISSET(socketClient, &rfds)){
-                PopClientSocketFromList(pSocketList, socketClient);
-                
-                //printf("create pthread for client %d \n",socketClient);
-                //printf(" param = %x \n",(void *)(&socketRecv));
+                DelSocketFromList(pSocketList, socketClient);
                 PushSocketInQueue(pSocketQueue, socketClient);
-                
-                //pthread_join(pthreadid, NULL);
-                //if(ret<=0){
-                //    close(socketClient);
-                //    PopClientSocketFromList(pSocketList, socketClient);
-                //}
-                
             }
                 
         }
@@ -127,8 +111,9 @@ int main(int argc, char *argv[])
 
 
         if(FD_ISSET(pipefd[0], &rfds)){
-            uint64_t temp;
-            read(pipefd[0], &temp, sizeof(temp));
+
+            read(pipefd[0], &socketClient, sizeof(socketClient));
+            AddSocketInList(pSocketList, socketClient);
             printf(" event socketClient = %d \n", socketClient);
         }
         
@@ -146,7 +131,7 @@ static void accept_new_client(int socketServer, PSOCKET_LIST pSocketList)
     
     socketClient = accept(socketServer, (struct sockaddr *)&addrClient, &addrClientLen);
     if(socketClient > 0){
-       index = PushClientSocketInList(pSocketList,  socketClient);
+       index = AddSocketInList(pSocketList,  socketClient);
        printf("push new client %d into %d\n",socketClient, index);
     }
 }
