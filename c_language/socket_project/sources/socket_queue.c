@@ -78,7 +78,7 @@ int PopSocketFromQueue(PSOCKET_QUEUE pSocketQueue, int *pSocket)
 
     pthread_mutex_lock(&(pSocketQueue->lock));
 
-    if(QueueIsEmpty(pSocketQueue)){
+    while(QueueIsEmpty(pSocketQueue)){
         pthread_cond_wait(&(pSocketQueue->condReadReady),&(pSocketQueue->lock));
     }
     
