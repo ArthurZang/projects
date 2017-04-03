@@ -23,10 +23,10 @@ nmap <Leader>WQ :wa<CR>:q<CR>
 nmap <Leader>Q :qa!<CR>
 
 " 依次遍历子窗口
- nnoremap nw <C-W><C-W>
+nnoremap nw <C-W><C-W>
 
 " 跳转至右方的窗口
- nnoremap <Leader>lw <C-W>l
+nnoremap <Leader>lw <C-W>l
 
 " 跳转至左方的窗口
 nnoremap <Leader>hw <C-W>h
@@ -64,3 +64,9 @@ set tabstop=4
 "连续4个空格为一个制表符
 set shiftwidth=4
 
+"将pathogen安装
+execute pathogen#infect()
+
+"设置主题风格
+set background=dark
+colorscheme solarized
