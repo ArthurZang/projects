@@ -6,11 +6,15 @@
 #define THREAD_NUM 50
 
 static int s_iCount;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void *thread_func(void *pArg)
 {
     sleep(1);
+
+    pthread_mutex_lock(&mutex);
     s_iCount ++;
+    pthread_mutex_unlock(&mutex);
 
     printf("hello pthread %d \n", s_iCount);
     return NULL;
