@@ -8,7 +8,7 @@
 static int s_iCount;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
-static void *thread_func(void *pArg)
+static void *thread_funcB(void *pArg)
 {
     sleep(1);
 
@@ -16,20 +16,30 @@ static void *thread_func(void *pArg)
     s_iCount ++;
     pthread_mutex_unlock(&mutex);
 
-    printf("hello pthread %d \n", s_iCount);
+    printf("%s count: %d \n", __func__, s_iCount);
     return NULL;
 }
+
+static void *thread_funcA(void *pArg)
+{
+    sleep(1);
+    pthread_mutex_lock(&mutex);
+    s_iCount++;
+    pthread_mutex_unlock(&mutex);
+
+    printf("%s count: %d\n",__func__, s_iCount);
+    return NULL;
+}
+
 int main(int argc, char *argv[])
 {
-    int i;
 
-    pthread_t threadID[THREAD_NUM];
+    pthread_t threadIDA,threadIDB;
 
-    for(i=0;i<THREAD_NUM;i++){
-        pthread_create(&threadID[i], NULL, &thread_func, NULL);
-    }
+    pthread_create(&threadIDA, NULL, &thread_funcA, NULL);
+    pthread_create(&threadIDB, NULL, &thread_funcB, NULL);
 
-    for(i=0;i<THREAD_NUM;i++)
-        pthread_join(threadID[i],NULL);
+    pthread_join(threadIDA,NULL);
+    pthread_join(threadIDB,NULL);
 
 }
