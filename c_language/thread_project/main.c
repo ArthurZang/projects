@@ -6,6 +6,9 @@
 
 #define THREAD_NUM 50
 
+
+
+
 static int s_iCount;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 sem_t *sem;
